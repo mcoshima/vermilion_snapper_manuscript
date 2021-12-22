@@ -8,24 +8,8 @@
 # User-specific files
 .Ruserdata
 
-# Example code in package build process
-*-Ex.R
-
-# Output files from R CMD build
-/*.tar.gz
-
-# Output files from R CMD check
-/*.Rcheck/
-
 # RStudio files
 .Rproj.user/
-
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
-
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
-.httr-oauth
 
 # knitr and R markdown default cache directories
 *_cache/
@@ -37,3 +21,20 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# SS files
+.sso 
+.cor 
+.b01 
+.b02 
+.eva
+.p01
+.p02
+.par 
+.r01
+.r02 
+.rep 
+.std 
+.ss_new
+.hes 
+.dep 
