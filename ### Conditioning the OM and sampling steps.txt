@@ -1,0 +1,29 @@
+The basic steps are contained in functions:
+
+1. User calls run_SSMSE
+2. Steps for one iteration are passed to run_SSMSE_scen() and then run_SSMSE_iter().
+3. The OM is created with create_OM()
+4. run_OM() runs the OM and creates the dataset to pass to the management strategy
+5. Parse_MS() is called, and runs the Management Strategy function (e.g., EM()), which projects catch forward.
+6. Update_OM() is called, which puts catch into the operating model.
+7. run_OM() runs the OM and creates the dataset to pass to the management strategy
+8. Parse_MS() is called, and runs the Management Strategy function (e.g., EM()), which projects catch forward.
+9. Determine if more years need to be projected. If yes, continue; if no, end simulation.
+10. Repeat steps 5-8.
+
+
+### Conditioning the OM and sampling from the OM
+
+For each scenario, SSMSE starts with the user providing a fitted SSS3 model (or selecting an model from the SSMSE package) to use as an OM. For each iteration of the scenario, SSMSE turns the SS fitted model into an OM and runs it once with no estimation with Stock Synthesis in order to get the "true" values and a bootstrapped data set from SS3. Note that any modifications to the OM's parameters specified by the users as it is extended forward in time are also applied.
+
+### First run of the management strategy in the MSE simulation
+
+The bootstrapped dataset is then used in a Management strategy to project catch by fleet to use for the next $n$ years, where $n$ is the number of years between assessments.
+
+### Feedback from managment strategy into OM: extending model years
+
+The catch for the next $n$ years before the next assessment is then added to the OM, as well as any recruitment or time varying parameter deviations. The OM is again run with no estimation where it can be used to produce sampled data for the next $n$ years. These new data values are appended to the original dataset.
+
+### Subsequent runs of the management strategy
+
+The appended data set is then used in the management strategy again, and new catch by fleet is produced that can then be fed back to the OM.

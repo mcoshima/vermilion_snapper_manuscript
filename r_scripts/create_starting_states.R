@@ -8,6 +8,7 @@ library(stringr)
 setwd('..')
 dir. <- paste0(getwd(), "/vermilion_snapper_manuscript/with_comp")
 dir.mcmc <- file.path(dir., "mcmc")
+dir.create(dir.mcmc)
 set.seed <- read.csv(file.path(getwd(), "vermilion_snapper_manuscript", "TidyData", "setseed.csv"))
 
 ## Read in starter file and change settings for running MCMC 
@@ -15,8 +16,16 @@ start <- SS_readstarter(file = paste0(dir., "/initial_pop/starter.ss"))
 start$init_values_src <- 0
 start$run_display_detail <- 0
 start$MCMCburn <- 100
-start$MCMCthin <- 1
+start$MCMCthin <- 10
 SS_writestarter(start, dir = paste0(dir., "/initial_pop/"), overwrite = TRUE)
+
+forecast <- SS_readforecast(file = paste0(dir., "/initial_pop/forecast.ss"))
+forecast$Nforecastyrs <- 0
+forecast$Forecast <- 0
+SS_writeforecast(forecast, dir = paste0(dir., "/initial_pop/"), overwrite = TRUE)
+
+files. <- c("vs_envM2.dat", "vs.ctl", "ss.exe", "forecast.ss", "starter.ss")
+file.copy(file.path(dir., "initial_pop", files.), dir.mcmc, overwrite = TRUE)
 
 ### create new folders
 iterations <- seq(1, 100, by = 1)
@@ -27,10 +36,10 @@ sapply(dir.it, dir.create)
 shell(paste("cd/d", dir.mcmc, "&& ss -mcmc 11000 -mcsave 10 >NUL 2>&1", sep = " "))
 shell(paste("cd/d", dir.mcmc, "&& ss -mceval >NUL 2>&1", sep = " "))
 
-files. <- list("vs_envM2.dat", "vs.ctl", "forecast.ss", "starter.ss", "ss.exe", "ss.par")
+files.new <- list("vs_envM2.dat", "vs.ctl", "forecast.ss", "starter.ss", "ss.exe", "ss.par")
 
 for(i in 1:length(dir.it)){
-  files.path <- file.path(dir.mcmc, files.)
+  files.path <- file.path(dir.mcmc, files.new)
   file.copy(files.path, file.path(dir.it[i]), overwrite = TRUE)
 }
 
@@ -52,8 +61,8 @@ sr <- row.names(pars$SR_parms)
 s <- row.names(pars$S_parms)
 recdevs <- paste0("Main_RecrDev_", pars$recdev1[,1])
 recdevs.fore <- c(paste0("Late_RecrDev_", 
-                         pars$recdev_forecast[which(pars$recdev_forecast[,1] <= 2022),1]),
-                  paste0("ForeRecr_", pars$recdev_forecast[which(pars$recdev_forecast[,1] > 2022),1]))
+                         pars$recdev_forecast[which(pars$recdev_forecast[,1] <= 2017),1]),
+                  paste0("ForeRecr_", pars$recdev_forecast[which(pars$recdev_forecast[,1] > 2017),1]))
 q <- row.names(pars$Q_parms)
 f <- paste("F_fleet", 
            pars$F_rate$fleet, 
@@ -173,6 +182,6 @@ shell(paste("cd/d", dir.it[i], "&& ss -nohess >NUL 2>&1", sep = " "))
 
 ### Compare starting states ######
 dir.create(path = file.path(dir., "starting_states_comp_plots"))
-big.reps <- SSgetoutput(dirvec = c(dir.,  dir.it), verbose = FALSE) ###TODO fix this so it gets all rep files from any start_pop_ folder
+big.reps <- SSgetoutput(dirvec = c(dir.,  dir.it), verbose = FALSE) 
 sum.reps <- SSsummarize(big.reps)
 SSplotComparisons(sum.reps, print = TRUE, plotdir = file.path(dir., "starting_states_comp_plots"), legend = FALSE)

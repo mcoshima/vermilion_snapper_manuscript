@@ -16,11 +16,12 @@ library(truncnorm)
 
 args = commandArgs(trailingOnly = TRUE)
 setwd('..')
-dir. <- paste0(getwd(), "/one_plus")
-report. <- MO_SSoutput(dir = file.path(dir., "initial_pop", "initial_w_compF"))
+dir. <- paste0(getwd(), "/with_comp")
+report. <- SS_output(dir = file.path(dir., "initial_pop"))
 
-dat.init <- SS_readdat(file.path(dir., "initial_pop", "initial_w_compF", "/VS.dat"))
-seed <- read.csv("setseed.csv")
+
+dat.init <- SS_readdat(file.path(dir., "initial_pop", "/vs_envM2.dat"))
+seed <- read.csv("./TidyData/setseed.csv")
 seed <- as.vector(seed[,2])
 
 #Data and parameter setup

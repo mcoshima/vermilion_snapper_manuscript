@@ -11,10 +11,27 @@ om.scenario <- args[1]
 iteration <- args[2]
 
 dir. <- paste0(getwd(), "/vermilion_snapper_manuscript/with_comp")
-dir.boot <- file.path(dir., paste0("start_pop_", iteration))
+
+dir.OMscen <- paste0(getwd(), "/vermilion_snapper_manuscript/with_comp/start_pop_", iteration, "/", om.scenario)
+dir.create(dir.OMscen)
+dir.OM <- paste0(dir.OMscen, "/OM")
+dir.create(dir.OM)
+#dir.boot <- dir.OM
+
 #to get functions like splt.recombine
 source(file.path(getwd(), "vermilion_snapper_manuscript", "r_scripts", "utils.R"))
+source(file.path(getwd(), "vermilion_snapper_manuscript", "r_scripts", "init_OM.R"))
 
+## Copy files into OM directory
+files. <- c("forecast.ss", "ss.exe", "ss.par", "vs.ctl", "starter.ss", "vs_envM2.dat")
+file.copy(paste0(dir., "/start_pop_", iteration, "/", files.), dir.OM, overwrite = TRUE)
+
+
+## Create sample structure data
+colnames(boot_dat$catch) <- c("year", "seas", "fleet", "catch_se")
+colnames(boot_dat$CPUE) <- c("year", "seas", "index", "se_log")
+colnames(boot_dat$lencomp) <- c("Yr", "Seas", "FltSvy", "Gender", "Part", "Nsamp")
+colnames(boot_dat$agecomp) <- c("Yr", "Seas", "FltSvy", "Gender", "Part", "Ageerr", "Lbin_lo", "Lbin_hi", "Nsamp")
 
 proj.index.full <-
   read.csv(file.path(dir., "../TidyData/RS.biomass.report.csv"))
@@ -24,48 +41,38 @@ proj.index <-
   select(Yr, RS_relative) %>% 
   filter(Yr >= 2018) %>% 
   rename(Year = Yr)
-# proj.index$low <- NA
-# proj.index$med <- NA
-# proj.index$high <- NA
-# 
-# for(i in 1:nrow(proj.index)){
-#   proj.index$low[i]<- rnorm(1, proj.index$RS_relative[i], .)
-#   proj.index$med[i]<- rnorm(1, proj.index$RS_relative[i], .01)
-#   proj.index$high[i]<- rnorm(1, proj.index$RS_relative[i], .1)
-#   
-# }
 
 
 #number of years to generate data for
 n.years.fwd <- 5
 
-dat. <- SS_readdat_3.30(file = file.path(dir.boot, "vs_envM2.dat"))
+dat. <- SS_readdat_3.30(file = file.path(dir.OM, "vs_envM2.dat"))
 
 #year starting data generation from 
-#start.yr <- dat.$endyr + 1
+start.yr <- dat.$endyr + 1
 
 ## Updating DAT file
-# old.endyr <- dat.$endyr
-# dat.$endyr <- dat.$endyr + n.years.fwd 
+endyr <- dat.$endyr
+#dat.$endyr <- dat.$endyr + n.years.fwd 
 
 ## Find patterns in historical data
 cpue.patterns <- dat.$CPUE %>% 
   group_by(index) %>% 
   summarise(term.yr = max(year),
-    mean_se = mean(se_log)) %>% 
-  filter(term.yr == old.endyr)
+            mean_se = mean(se_log)) %>% 
+  filter(term.yr == endyr)
 
 catch.patterns <- dat.$catch %>% 
   group_by(fleet) %>% 
   summarise(term.yr = max(year),
             mean.se = mean(catch_se)) %>% 
-  filter(term.yr == old.endyr)
+  filter(term.yr == endyr)
 
 discard.patterns <- dat.$discard_data %>% 
   group_by(Flt) %>% 
   summarise(term.yr = max(Yr),
             mean.se = mean(Std_in)) %>% 
-  filter(term.yr == old.endyr)
+  filter(term.yr == endyr)
 
 lencomp.patterns <- dat.$lencomp %>% 
   group_by(FltSvy) %>% 
@@ -85,28 +92,25 @@ catch <- data.frame(
   year = rep(seq(start.yr, start.yr + n.years.fwd - 1), nrow(catch.patterns)),
   seas = rep(1, n.years.fwd*nrow(catch.patterns)),
   fleet = rep(unique(catch.patterns$fleet), each = n.years.fwd),
-  catch = rep(0.001, n.years.fwd*nrow(catch.patterns)),
   catch_se = rep(catch.patterns$mean.se, each = n.years.fwd)
 )
+
 
 ### CPUE df
 CPUE <- data.frame(
   year = rep(seq(start.yr, start.yr + n.years.fwd - 1), nrow(cpue.patterns)),
   seas = rep(7, n.years.fwd*nrow(cpue.patterns)),
   index = rep(cpue.patterns$index, each = n.years.fwd),
-  obs = rep(1, n.years.fwd*nrow(cpue.patterns)),
   se_log = rep(cpue.patterns$mean_se, each = n.years.fwd)
 )
 
-### discard df
-discard_data <- data.frame(
+discard <- data.frame(
   Yr = rep(seq(start.yr, start.yr + n.years.fwd - 1), nrow(discard.patterns)),
   Seas = rep(7, n.years.fwd*nrow(discard.patterns)),
-  Flt = rep(discard.patterns$Flt, each = n.years.fwd),
-  Discard = rep(0, n.years.fwd*nrow(discard.patterns)),
+  Flt = rep(discard.patterns$Flt, each = n.years.fwd), 
+  Discard = rep(1, n.years.fwd*nrow(discard.patterns)), 
   Std_in = rep(discard.patterns$mean.se, each = n.years.fwd)
 )
-
 ### length comp
 lencomp <- data.frame(
   Yr = rep(seq(start.yr, start.yr + n.years.fwd - 1), nrow(lencomp.patterns)), 
@@ -115,12 +119,7 @@ lencomp <- data.frame(
   Gender = rep(0, n.years.fwd*nrow(lencomp.patterns)), 
   Part = rep(0, n.years.fwd*nrow(lencomp.patterns)), 
   Nsamp = rep(75, n.years.fwd*nrow(lencomp.patterns))
-  )
-
-## make a matrix of 0s for dummy len/age comp then set colnames to paste0("l", lbins)
-dum.len <- as.data.frame(matrix(data = 1, nrow = nrow(lencomp), ncol = length(lbins)))
-colnames(dum.len) <- paste0("l", lbins)
-lencomp <- cbind(lencomp, dum.len)
+)
 
 ### age comp
 agecomp <- data.frame(
@@ -133,12 +132,8 @@ agecomp <- data.frame(
   Lbin_lo = rep(-1, n.years.fwd*nrow(agecomp.patterns)),
   Lbin_hi = rep(-1, n.years.fwd*nrow(agecomp.patterns)),
   Nsamp = rep(75, n.years.fwd*nrow(agecomp.patterns))
-  )
+)
 
-## make a matrix of 0s for dummy len/age comp then set colnames to paste0("l", lbins)
-dum.age <- as.data.frame(matrix(data = 1, nrow = nrow(agecomp), ncol = length(abins)))
-colnames(dum.age) <- paste0("a", abins)
-agecomp <- cbind(agecomp, dum.age)
 
 ### Envrionmental data (competition index)
 ### Note right now it is just the perfectly known
@@ -150,60 +145,46 @@ envdat <- data.frame(
 
 
 boot_dat <- list(
-                "catch" = catch,
-                "CPUE" = CPUE,
-                "discard_data" = discard_data,
-                "lencomp" = lencomp,
-                "agecomp" = agecomp,
-                "envdat" = envdat
-                 )
+  "catch" = catch,
+  "CPUE" = CPUE,
+  "discard_data" = discard,
+  "lencomp" = lencomp,
+  "agecomp" = agecomp,
+  "envdat" = envdat
+)
 
-### Combine new and old data
-dat.$catch <- as.data.frame(splt.recombine(dat.$catch, 
-                            boot_dat$catch, 
-                            fleet, 
-                            length(unique(boot_dat$catch$fleet))))
+### Create OM 
+create_OM(OM_out_dir = dir.OM, overwrite = TRUE, nyrs = 5, nyrs_assess = 4, scen_name = "perfect", sample_struct = boot_dat, os = "win", seed = seed)
 
-dat.$CPUE <- as.data.frame(splt.recombine(dat.$CPUE, 
-                           boot_dat$CPUE, 
-                           index, 
-                           length(unique(boot_dat$CPUE$index))))
+## Create bootstrapped data and update OM and EM
+start <- r4ss::SS_readstarter(paste0(dir.OM, "/starter.ss"))
+start$N_bootstraps <- 3
+r4ss::SS_writestarter(start, dir = dir.OM, overwrite = TRUE)
 
-discard.splt <- boot_dat$discard_data %>% 
-  group_by(Flt) %>% 
-  group_split() 
+run_ss(dir.OM, os = "win", "-maxfn 0 -phase 50 -nohess")
 
-dat.discard.splt <- dat.$discard_data %>% 
-  group_by(Flt) %>% 
-  group_split()
-dis <- list()
-dis[[1]] <- rbind(dat.discard.splt[[2]], discard.splt[[2]])
-dis[[2]] <- rbind(dat.discard.splt[[3]], discard.splt[[3]])
-dis[[3]] <- rbind(dat.discard.splt[[4]], discard.splt[[4]])
-dis[[4]] <- rbind(dat.discard.splt[[5]], dat.discard.splt[[1]], discard.splt[[1]])
-dat.$discard_data <- as.data.frame(do.call(rbind, dis))
-dat.$discard_data <- dat.$discard_data %>% 
-  mutate(Seas = ifelse(Yr == 1972 & Flt == 4 | Yr == dat.$endyr & Flt == -4, -7, 7))
+OM.dat <- r4ss::SS_readdat_3.30(file = paste0(dir.OM, "/data.ss_new"), section = 2)
 
-dat.$lencomp <- as.data.frame(splt.recombine(dat.$lencomp, 
-                          boot_dat$lencomp, 
-                          FltSvy, 
-                          2))
 
-dat.$agecomp <- as.data.frame(splt.recombine(dat.$agecomp, 
-                          boot_dat$agecomp, 
-                          FltSvy, 
-                          3))
+EM.dat <- r4ss::SS_readdat_3.30(file = paste0(dir.OM, "/data.ss_new"), section = 3)
 
-dat.$envdat <- rbind(dat.$envdat, boot_dat$envdat)
+### Why is recreational catch so different in bootstrapped years?
+EM.dat$catch %>% 
+  filter(fleet ==3) %>% 
+  filter(year > 2000 & year < 2018) %>% 
+  ggplot(aes(x = year, y = catch)) +
+  geom_point() +
+  geom_line()
 
-SS_writedat_3.30(dat., outfile = file.path(dir.boot, "vs_envM2.dat"), overwrite = T)
+OM.dat$catch %>% 
+  filter(year > 1980) %>% 
+  ggplot(aes(x = year, y = catch)) +
+  geom_point() +
+  geom_line() +
+  geom_point(data = EM.dat$catch[which(EM.dat$catch$year > 1980),], 
+             aes(x = EM.dat$catch[which(EM.dat$catch$year > 1980), 1],
+                 y = EM.dat$catch[which(EM.dat$catch$year > 1980), 4]), color = "blue") +
+  facet_wrap(~fleet, scales = "free") 
 
-## Update Starter for bootstrap files
-starter <- SS_readstarter(file = file.path(dir.boot, "starter.ss"))
-starter$N_bootstraps <- 3
-starter$init_values_src <- 1
-starter$last_estimation_phase <- 0
-SS_writestarter(starter, dir = dir.boot, overwrite = TRUE)
-
-shell(paste("cd/d", dir.boot, "&& ss -nohess >NUL 2>&1", sep = " "))
+report <- SS_output(dir = dir.OM)
+report$timeseries
