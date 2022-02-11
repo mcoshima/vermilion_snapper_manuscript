@@ -2,7 +2,7 @@
 vs_envM2.dat #file name of data file
 vs.ctl #file name of control file
 0 #inital parameter values 0 = use values in control file; 1 = use ss.par after reading setup in control file
-1 #run display detail 0 = none other than ADMB outputs; 1 = one brief line of display for each iteration; 2 = fuller display per iteration 
+0 #run display detail 0 = none other than ADMB outputs; 1 = one brief line of display for each iteration; 2 = fuller display per iteration 
 1 #detailed age-structure report: 0 = minimal output for data-limited methods; 1 = include all output; 2 = brief output, no growth; 3 = custom output
 0 #write 1st iteration details: 0 = omit; 1 = write detailed intermediate calculations to echoinput.sso 
 0 #parameter trace: 0 = omit; 1 = write good iteration and active parameters; 2  = write good iterations and all params; 3 = write every iteration and all params; 4 = write every iteration and active params

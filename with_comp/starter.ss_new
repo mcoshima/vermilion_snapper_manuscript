@@ -8,7 +8,7 @@
 vs_envM2.dat
 vs.ctl
 0 # 0=use init values in control file; 1=use ss.par
-1 # run display detail (0,1,2)
+0 # run display detail (0,1,2)
 1 # detailed output (0=minimal for data-limited, 1=high (w/ wtatage.ss_new), 2=brief, 3=custom) 
 # custom report options: -100 to start with minimal; -101 to start with all; -number to remove, +number to add, -999 to end
 0 # write 1st iteration details to echoinput.sso file (0,1) 
@@ -24,7 +24,7 @@ vs.ctl
 1 # MCeval thin interval
 0 # jitter initial parm value by this fraction
 -1 # min yr for sdreport outputs (-1 for styr); #_1948
--2 # max yr for sdreport outputs (-1 for endyr+1; -2 for endyr+Nforecastyrs); #_2022
+-2 # max yr for sdreport outputs (-1 for endyr+1; -2 for endyr+Nforecastyrs); #_2018
 0 # N individual STD years 
 #vector of year values 
 
@@ -39,5 +39,5 @@ vs.ctl
 0 # F_std_basis: 0=raw_annual_F; 1=F/Fspr; 2=F/Fmsy; 3=F/Fbtgt; where F means annual_F; values >=11 invoke N multiyr (up to 9!) with 10's digit; >100 invokes log(ratio)
 0 # MCMC output detail: integer part (0=default; 1=adds obj func components); and decimal part (added to SR_LN(R0) on first call to mcmc)
 0 # ALK tolerance (example 0.0001)
--1 # random number seed for bootstrap data (-1 to use long(time) as seed): # 1638977024
+-1 # random number seed for bootstrap data (-1 to use long(time) as seed): # 1644442142
 3.30 # check value for end of file and for version control

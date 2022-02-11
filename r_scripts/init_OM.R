@@ -773,17 +773,15 @@ add_sample_struct <- function(sample_struct, dat) {
     }
   }
 
-  if(!is.null(dat[["discard_data"]]) & !is.null(sample_struct["discard_data"])){
+  if(!is.null(dat[["discard_data"]]) & !is.null(sample_struct[["discard_data"]])){
     tmp_discard_data <- sample_struct[["discard_data"]]
     tmp_discard_data <- tmp_discard_data[tmp_discard_data[["Yr"]] >= subset_yr_start & tmp_discard_data[["Yr"]] <= subset_yr_end, ]
     if(nrow(tmp_discard_data) > 0){
-      #discards$Flt <- abs(dat.[["discard_data"]]["Flt"])
-      tmp_discard_data["Flt"] <- -abs(tmp_discard_data["Flt"])
       tpm_discard <- rbind(dat[["discard_data"]], tmp_discard_data)
       tpm_discard$Flt <- factor(tpm_discard$Flt,
-             levels = c(1, -1, 2, -2, 3, -3, 4, -4))
-      
+             levels = c(1, 2, 3, 4, -4))
       dat[["discard_data"]] <- tpm_discard[order(tpm_discard$Flt, tpm_discard$Yr),]
+      dat[["discard_data"]][["Flt"]] <- as.numeric(as.character(dat[["discard_data"]][["Flt"]]))
     }
     
   }
