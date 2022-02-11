@@ -27,11 +27,11 @@ files. <- c("forecast.ss", "ss.exe", "ss.par", "vs.ctl", "starter.ss", "vs_envM2
 file.copy(paste0(dir., "/start_pop_", iteration, "/", files.), dir.OM, overwrite = TRUE)
 
 
-## Create sample structure data
-colnames(boot_dat$catch) <- c("year", "seas", "fleet", "catch_se")
-colnames(boot_dat$CPUE) <- c("year", "seas", "index", "se_log")
-colnames(boot_dat$lencomp) <- c("Yr", "Seas", "FltSvy", "Gender", "Part", "Nsamp")
-colnames(boot_dat$agecomp) <- c("Yr", "Seas", "FltSvy", "Gender", "Part", "Ageerr", "Lbin_lo", "Lbin_hi", "Nsamp")
+# ## Create sample structure data
+# colnames(boot_dat$catch) <- c("year", "seas", "fleet", "catch_se")
+# colnames(boot_dat$CPUE) <- c("year", "seas", "index", "se_log")
+# colnames(boot_dat$lencomp) <- c("Yr", "Seas", "FltSvy", "Gender", "Part", "Nsamp")
+# colnames(boot_dat$agecomp) <- c("Yr", "Seas", "FltSvy", "Gender", "Part", "Ageerr", "Lbin_lo", "Lbin_hi", "Nsamp")
 
 proj.index.full <-
   read.csv(file.path(dir., "../TidyData/RS.biomass.report.csv"))
@@ -135,7 +135,7 @@ agecomp <- data.frame(
 )
 
 
-### Envrionmental data (competition index)
+### Environmental data (competition index)
 ### Note right now it is just the perfectly known
 envdat <- data.frame(
   Yr = seq(start.yr, start.yr + n.years.fwd - 1),
@@ -188,3 +188,19 @@ OM.dat$catch %>%
 
 report <- SS_output(dir = dir.OM)
 report$timeseries
+
+OM.dat$CPUE %>% 
+  filter(index > 2) %>% 
+  ggplot(aes(x = year, y = obs)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~index, scales = "free")
+
+OM.dat$discard_data %>% 
+  filter(Flt != 4) %>% 
+  ggplot(aes(x = Yr, y = Discard)) +
+  geom_line() +
+  facet_wrap(~Flt, scales = "free")
+
+OM.dat$discard_fleet_info
+colnames(outlist$timeseries)
