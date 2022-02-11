@@ -43,3 +43,42 @@ splt.recombine <- function(df1, df2, group_var, N){
   
 }
 
+### Function for running SS and specifying the file name based on the operating system
+### for os specify "windows" for windows, "osx" for Mac, or "lin" for Linux
+### for xtras you can add additional commands, such as -nohess or -mceval
+run_ss <- function(dir., os = "osx", xtras=NULL){
+  out <- tryCatch(
+    expr = {
+      
+      message("Running SS now")
+      if(os == "lin"){
+        system(paste("cd", dir., "&& ./ss_linux", xtras, "> /dev/null 2>&1", sep = " "))
+      }
+      if(os == "windows"){
+        shell(paste("cd/d", dir., "&& ss_win", xtras, " >NUL 2>&1", sep = " "))
+        }
+     if(os == "osx"){
+       system(paste("cd", dir., "&& ./ss_osx", xtras, " > /dev/null 2>&1", sep = " "))
+     }
+      
+      assign("error", FALSE, envir = globalenv())
+      
+    },
+    warning = function(w){
+      print(paste("There was a warning", w))
+      assign("error", TRUE, envir = globalenv())
+      return(error)
+    },
+    error = function(e){
+      
+      print(paste("The model didn't converge", e))
+      assign("error", TRUE, envir = globalenv())
+      return(error)
+    },
+    finally = {
+      return(error)
+    }
+    
+  )
+  return(out)
+}

@@ -1,0 +1,25 @@
+1 catch is 0.0 in endyr; this can cause problem in the benchmark and forecast calculations
+2 discard observation: 25 has no corresponding catch  2018 7 1 0 0.3
+3 discard observation: 26 has no corresponding catch  2019 7 1 0 0.3
+4 discard observation: 27 has no corresponding catch  2020 7 1 0 0.3
+5 discard observation: 28 has no corresponding catch  2021 7 1 0 0.3
+6 discard observation: 29 has no corresponding catch  2022 7 1 0 0.3
+7 discard observation: 55 has no corresponding catch  2018 7 2 0 0.3
+8 discard observation: 56 has no corresponding catch  2019 7 2 0 0.3
+9 discard observation: 57 has no corresponding catch  2020 7 2 0 0.3
+10 discard observation: 58 has no corresponding catch  2021 7 2 0 0.3
+11 discard observation: 59 has no corresponding catch  2022 7 2 0 0.3
+12 discard observation: 96 has no corresponding catch  2018 7 3 0 0.3
+13 discard observation: 97 has no corresponding catch  2019 7 3 0 0.3
+14 discard observation: 98 has no corresponding catch  2020 7 3 0 0.3
+15 discard observation: 99 has no corresponding catch  2021 7 3 0 0.3
+16 discard observation: 100 has no corresponding catch  2022 7 3 0 0.3
+17 discard observation: 147 has no corresponding catch  2018 7 -4 0 0.5
+18 discard observation: 148 has no corresponding catch  2019 7 -4 0 0.5
+19 discard observation: 149 has no corresponding catch  2020 7 -4 0 0.5
+20 discard observation: 150 has no corresponding catch  2021 7 -4 0 0.5
+21 discard observation: 151 has no corresponding catch  2022 -7 -4 0 0.5
+22 mean recruitment for forecast is incompatible with pos. phase for forecast rec_devs; set phase to neg. unless using late rec_devs
+23 fleet: 9  lencomp has obs with partition==2; will treat as partition=0 because retention not defined; N= 9
+24 setting positive forecast relF for bycatch fleet: 4
+N warnings: 24

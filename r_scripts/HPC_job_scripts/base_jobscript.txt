@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+reruns=( 46 48 50 52 67 69 71 77 84 85 89 92 97 )
+
+for i in ${reruns[@]};
+do
+    sbatch --job-name base_job_${1} --output basejob_${i}.txt ./base_job.sh $i
+
+done

@@ -6,9 +6,11 @@ library(dplyr)
 library(stringr)
 
 setwd('..')
-dir. <- paste0(getwd(), "/vermilion_snapper_manuscript/with_comp")
+dir. <- paste0(getwd(), "/with_comp")
 dir.mcmc <- file.path(dir., "mcmc")
-set.seed <- read.csv(file.path(getwd(), "vermilion_snapper_manuscript", "TidyData", "setseed.csv"))
+dir.create(dir.mcmc)
+set.seed <- read.csv(file.path(getwd(), "TidyData", "setseed.csv"))
+source(file.path(getwd(), "r_scripts", "utils.R"))
 
 ## Read in starter file and change settings for running MCMC 
 start <- SS_readstarter(file = paste0(dir., "/initial_pop/starter.ss"))
@@ -18,16 +20,28 @@ start$MCMCburn <- 100
 start$MCMCthin <- 1
 SS_writestarter(start, dir = paste0(dir., "/initial_pop/"), overwrite = TRUE)
 
-### create new folders
-iterations <- seq(1, 100, by = 1)
-dir.it <- paste0(dir., "/start_pop_", iterations)
-sapply(dir.it, dir.create)
+## Copy files over to mcmc directory
+files. <- c("forecast.ss", "vs.ctl", "vs_envM2.dat", "starter.ss", "ss_osx")
+files.path <- file.path(dir., "initial_pop", files.)
+file.copy(from = files.path, to = dir.mcmc, overwrite = TRUE, recursive = TRUE)
+
 
 #Run ss with mcmc and mcsave first then run ss -mceval to estimate posteriors
-shell(paste("cd/d", dir.mcmc, "&& ss -mcmc 11000 -mcsave 10 >NUL 2>&1", sep = " "))
-shell(paste("cd/d", dir.mcmc, "&& ss -mceval >NUL 2>&1", sep = " "))
+run_ss(dir.mcmc, os = "osx", xtras = "-mcmc 11000 -mcsave 10")
+run_ss(dir.mcmc, os = "osx", xtras = "-mceval")
+# system(paste("cd", dir.mcmc, "&& ./ss_osx -mcmc 11000 -mcsave 10 > /dev/null 2>&1", sep = " "))
+# system(paste("cd", dir.mcmc, "&& ./ss_opt_osx -mceval > /dev/null 2>&1", sep = " "))
 
-files. <- list("vs_envM2.dat", "vs.ctl", "forecast.ss", "starter.ss", "ss.exe", "ss.par")
+## for windows
+# shell(paste("cd/d", dir.mcmc, "&& ss -mcmc 11000 -mcsave 10 >NUL 2>&1", sep = " "))
+# shell(paste("cd/d", dir.mcmc, "&& ss -mceval >NUL 2>&1", sep = " "))
+
+files. <- list("vs_envM2.dat", "vs.ctl", "forecast.ss", "starter.ss", "ss_osx", "ss.par")
+
+## Create starting states folders
+iterations <- seq(1, 10, by = 1)
+dir.it <- paste0(dir., "/start_pop_", iterations)
+sapply(dir.it, dir.create)
 
 for(i in 1:length(dir.it)){
   files.path <- file.path(dir.mcmc, files.)
@@ -168,7 +182,8 @@ starter.i$last_estimation_phase <- 0
 starter.i$seed <- set.seed[i,2]
 SS_writestarter(starter.i, dir = file.path(dir.it[i]), overwrite = TRUE)
 
-shell(paste("cd/d", dir.it[i], "&& ss -nohess >NUL 2>&1", sep = " "))
+run_ss(dir.it[i], os = "osx", xtras = "-nohess")
+
 }
 
 ### Compare starting states ######

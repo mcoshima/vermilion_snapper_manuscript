@@ -215,21 +215,26 @@ fecund <- report.$ageselex %>%
   proj.index$med <- NA
   proj.index$high <- NA
 
+  #want to specify sd by CV levels (10%, 25%, and 50%)
+  mu <- mean(proj.index$RS_relative)
+  cv.10 <- mu * .1
+  cv.25 <- mu * .25
+  cv.50 <- mu * .5
   for(i in 1:nrow(proj.index)){
-    proj.index$low[i]<- rnorm(1, proj.index$RS_relative[i], .005)
-    proj.index$med[i]<- rnorm(1, proj.index$RS_relative[i], .01)
-    proj.index$high[i]<- rnorm(1, proj.index$RS_relative[i], .1)
+    proj.index$low[i]<- rnorm(1, proj.index$RS_relative[i], cv.10)
+    proj.index$med[i]<- rnorm(1, proj.index$RS_relative[i], cv.25)
+    proj.index$high[i]<- rtruncnorm(1, a = 0, b = Inf, proj.index$RS_relative[i], cv.50)
 
   }
 
   rs.scen = args[3]
   col.num <- which(colnames(proj.index) == rs.scen)
-  fixed.comp.f <- proj.index$RS_relative * report.$exploitation %>% filter(Yr == 2014) %>% select(COMP) %>% pull()
-  comp.f <- proj.index[,col.num] * report.$exploitation %>% filter(Yr == 2014) %>% select(COMP) %>% pull()
+  #fixed.comp.f <- proj.index$RS_relative * report.$exploitation %>% filter(Yr == start.year) %>% select(COMP) %>% pull()
+  #comp.f <- proj.index[,col.num] * report.$exploitation %>% filter(Yr == 2014) %>% select(COMP) %>% pull()
 
-  smp <- data.frame(Year = seq(2014, 2116), Seas = rep(1, 103), Fleet = rep(4, 103), f = rep(0.07356127, 103))
-  cmp <- data.frame(Year = seq(2014, 2116), Seas = rep(1, 103), Fleet = rep(5, 103), f = fixed.comp.f)
-  full.forecast.f <- bind_rows(smp, cmp) %>% arrange(Year)
+  #smp <- data.frame(Year = seq(2014, 2116), Seas = rep(1, 103), Fleet = rep(4, 103), f = rep(0.07356127, 103))
+  #cmp <- data.frame(Year = seq(2014, 2116), Seas = rep(1, 103), Fleet = rep(5, 103), f = fixed.comp.f)
+  #full.forecast.f <- bind_rows(smp, cmp) %>% arrange(Year)
 
   ##Catch dataframes
   catch <- matrix(NA, nrow = 4, ncol = 15)
